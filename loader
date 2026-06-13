@@ -1,35 +1,39 @@
-local env = (getgenv and getgenv()) or _G
-local key = rawget(env, "script_key") or rawget(_G, "script_key")
+local env=(getgenv and getgenv()) or _G
+local key=rawget(env,"script_key") or rawget(_G,"script_key")
 
-local FREE_LOADER = "https://api.luarmor.net/files/v4/loaders/4c62b5756b1c515a86573567abe00272.lua"
-local PAID_LOADER = "https://api.luarmor.net/files/v4/loaders/e2b09a46621a9d456007f1d87ae850a5.lua"
+local topLoader="https://api.luarmor.net/files/v4/loaders/4c62b5756b1c515a86573567abe00272.lua"
+local bottomLoader="https://api.luarmor.net/files/v4/loaders/e2b09a46621a9d456007f1d87ae850a5.lua"
 
-local function run(url)
-    local success, source = pcall(function()
-        return game:HttpGet(url)
-    end)
+local function run(url,prefix)
+    local source=game:HttpGet(url)
 
-    if not success or not source then
-        warn("HttpGet failed:", source)
-        return
+    if prefix then
+        source=prefix.."\n"..source
     end
 
-    local fn, err = loadstring(source)
+    local fn,err=loadstring(source)
 
     if not fn then
-        warn("Loader compile error:", err)
+        warn("Loader compile error:",err)
         return
     end
 
     return fn()
 end
 
--- no script_key at the top = load free/top loader
-if not key or key == "" then
-    return run(FREE_LOADER)
+if not key or key=="" then
+    run(topLoader)
+    return
 end
 
--- script_key exists = load paid/bottom loader
-if game.PlaceId == 9908641400 or game.GameId == 9908641400 then
-    return run(PAID_LOADER)
+key=tostring(key)
+
+if #key~=32 then
+    warn("Invalid script_key. It must be 32 characters.")
+    run(topLoader)
+    return
+end
+
+if game.PlaceId==9908641400 or game.GameId==9908641400 then
+    run(bottomLoader,'script_key="'..key..'";')
 end

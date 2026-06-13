@@ -1,7 +1,19 @@
-local key = rawget(getgenv and getgenv() or _G, "script_key") or rawget(_G, "script_key")
+local env = (getgenv and getgenv()) or _G
+local key = rawget(env, "script_key") or rawget(_G, "script_key")
+
+local FREE_LOADER = "https://api.luarmor.net/files/v4/loaders/4c62b5756b1c515a86573567abe00272.lua"
+local PAID_LOADER = "https://api.luarmor.net/files/v4/loaders/e2b09a46621a9d456007f1d87ae850a5.lua"
 
 local function run(url)
-    local source = game:HttpGet(url)
+    local success, source = pcall(function()
+        return game:HttpGet(url)
+    end)
+
+    if not success or not source then
+        warn("HttpGet failed:", source)
+        return
+    end
+
     local fn, err = loadstring(source)
 
     if not fn then
@@ -12,11 +24,12 @@ local function run(url)
     return fn()
 end
 
+-- no script_key at the top = load free/top loader
 if not key or key == "" then
-    run("https://api.luarmor.net/files/v4/loaders/4c62b5756b1c515a86573567abe00272.lua")
-    return
+    return run(FREE_LOADER)
 end
 
+-- script_key exists = load paid/bottom loader
 if game.PlaceId == 9908641400 or game.GameId == 9908641400 then
-    run("https://api.luarmor.net/files/v4/loaders/e2b09a46621a9d456007f1d87ae850a5.lua")
+    return run(PAID_LOADER)
 end
